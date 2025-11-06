@@ -91,10 +91,27 @@ UserSchema.virtual('otp', {
 
 // Add pre-save hook to hash password
 UserSchema.pre('save', async function (next) {
-  if (this.isModified('password')) {
-    this.password = await Hash(this.password);
+  try {
+    if (this.isModified('password')) {
+      console.log('Pre-save hook - Before hash:', {
+        password: this.password,
+        isModified: this.isModified('password'),
+      });
+
+      const hashedPassword = await Hash(this.password);
+
+      console.log('Pre-save hook - After hash:', {
+        hashedPassword,
+        isValid: hashedPassword.startsWith('$2b$'),
+      });
+
+      this.password = hashedPassword;
+    }
+    next();
+  } catch (error) {
+    console.error('Password hashing error:', error);
+    next(error);
   }
-  next();
 });
 
 // Export the model configuration

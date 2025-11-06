@@ -1,3 +1,4 @@
+import { TokenService } from './../../common/service/token/token.service';
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -7,18 +8,26 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { AddUserDto, confirmEmailDto, reSendOtpDto } from './user.dto';
+import {
+  AddUserDto,
+  confirmEmailDto,
+  loginDto,
+  reSendOtpDto,
+} from './user.dto';
 import { OtpRepository, UserRepository } from 'DB';
 import { emailTemplate, generateOTP, sendEmail } from 'src/common/service';
-import { OtpTypeEnum } from 'src/common/enums';
+import { OtpTypeEnum, UserRole } from 'src/common/enums';
 import { Types } from 'mongoose';
 import { Compare } from 'src/common/hash';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepo: UserRepository,
     private readonly otpRepo: OtpRepository,
+    private jwtService: JwtService,
+    private readonly tokenService: TokenService,
   ) {}
 
   private async sendOtp(userId: Types.ObjectId, email: string) {
@@ -36,26 +45,6 @@ export class UserService {
       subject: 'Confirm Email',
       html: emailTemplate(otp.toString(), 'confirmEmail'),
     });
-  }
-
-  async addUser(body: AddUserDto) {
-    const { email, password, age, fName, lName } = body;
-    const userExist = await this.userRepo.findOne({ email: email });
-    if (userExist) {
-      throw new BadRequestException('user already exists');
-    }
-    const user = await this.userRepo.create({
-      email,
-      password,
-      age,
-      fName,
-      lName,
-    });
-
-    const userId = new Types.ObjectId(user._id);
-    await this.sendOtp(userId, email);
-
-    return { message: 'User added successfully', data: user };
   }
 
   async reSendOtp(body: reSendOtpDto) {
@@ -157,5 +146,46 @@ export class UserService {
 
     await this.otpRepo.deleteOne({ filter: { createdBy: user._id } });
     return { message: 'Email confirmed successfully' };
+  }
+  async login(body: loginDto) {
+    const { email, password } = body;
+
+    const user = await this.userRepo.findOne({
+      filter: {
+        email,
+        confirmed: { $exists: true },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found or already confirmed');
+    }
+
+    const isValidPassword = await Compare(password, user.password);
+
+    if (!isValidPassword) {
+      throw new BadRequestException('invalid password');
+    }
+    const access_token = await this.tokenService.generateToken({
+      payload: { userId: user._id },
+      options: {
+        secret:
+          user.role === UserRole.user
+            ? process.env.SECRET_USER_TOKEN
+            : process.env.SECRET_ADMIN_TOKEN,
+        expiresIn: '1d',
+      },
+    });
+    const refresh_token = await this.tokenService.generateToken({
+      payload: { userId: user._id },
+      options: {
+        secret:
+          user.role === UserRole.user
+            ? process.env.REFRESH_SECRET_USER_TOKEN
+            : process.env.REFRESH_SECRET_ADMIN_TOKEN,
+        expiresIn: '1y',
+      },
+    });
+    return { message: 'done', access_token, refresh_token };
   }
 }

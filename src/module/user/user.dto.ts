@@ -27,6 +27,12 @@ export class confirmEmailDto extends reSendOtpDto {
   code: string;
 }
 
+export class loginDto extends reSendOtpDto {
+  @IsStrongPassword()
+  @IsNotEmpty()
+  password: string;
+}
+
 export class AddUserDto {
   @IsString()
   @IsNotEmpty()
