@@ -5,6 +5,7 @@ import { UserModule } from './module/user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
+import { BrandModule } from './module/brand/brand.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Connection } from 'mongoose';
         return connection;
       },
     }),
+    BrandModule,
   ],
   controllers: [AppController],
   providers: [AppService],
