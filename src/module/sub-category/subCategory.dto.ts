@@ -8,12 +8,13 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  Validate,
 } from 'class-validator';
 import { Types } from 'mongoose';
 import { PartialType } from 'nestjs-mapped-types';
-import { AtLeastOne } from 'src/common/decorators';
+import { AtLeastOne, IdsMongo } from 'src/common/decorators';
 
-export class CreateBrandDto {
+export class CreateSubCategoryDto {
   @IsString()
   @MinLength(3)
   @MaxLength(50)
@@ -25,10 +26,18 @@ export class CreateBrandDto {
   @MaxLength(10)
   @IsNotEmpty()
   slogan: string;
+
+  @Validate(IdsMongo)
+  @IsOptional()
+  brands: Types.ObjectId[];
+
+  @Validate(IdsMongo)
+  @IsOptional()
+  category: Types.ObjectId[];
 }
 
 @AtLeastOne(['name', 'slogan'])
-export class updateBrandDto extends PartialType(CreateBrandDto) {}
+export class updateSubCategoryDto extends PartialType(CreateSubCategoryDto) {}
 
 export class queryDto {
   @IsOptional()

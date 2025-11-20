@@ -14,17 +14,22 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { BrandService } from './brand.service';
-import { CreateBrandDto, idDto, queryDto, updateBrandDto } from './brand.dto';
+import { CategoryService } from './category.service';
+import {
+  CreateCategoryDto,
+  idDto,
+  queryDto,
+  updateCategoryDto,
+} from './category.dto';
 import { Auth, User } from 'src/common/decorators';
 import { TokenType, UserRole } from 'src/common/enums';
 import type { HUserDocument } from 'DB';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileValidation, multerLocal } from 'src/common/multer';
 
-@Controller('brand')
-export class BrandController {
-  constructor(private readonly brandService: BrandService) {}
+@Controller('category')
+export class CategoryController {
+  constructor(private readonly categoryService: CategoryService) {}
 
   @Auth({ role: [UserRole.admin], typeToken: TokenType.access })
   @UseInterceptors(
@@ -34,24 +39,32 @@ export class BrandController {
     ),
   )
   @Post()
-  async createBrand(
-    @Body() brandDto: CreateBrandDto,
+  async createCategory(
+    @Body() categoryDto: CreateCategoryDto,
     @User() user: HUserDocument,
     @UploadedFile(ParseFilePipe) file: Express.Multer.File,
   ) {
-    const brand = this.brandService.createdBrand(brandDto, user, file);
-    return { message: 'done', brand };
+    const category = await this.categoryService.createCategory(
+      categoryDto,
+      user,
+      file,
+    );
+    return { message: 'done', category };
   }
 
   @Auth({ role: [UserRole.admin], typeToken: TokenType.access })
   @Patch('update/:id')
-  async updateBrand(
+  async updateCategory(
     @Param() params: idDto,
-    @Body() brandDto: updateBrandDto,
+    @Body() categoryDto: updateCategoryDto,
     @User() user: HUserDocument,
   ) {
-    const brand = this.brandService.updateBrand(params.id, brandDto, user);
-    return { message: 'done', brand };
+    const category = await this.categoryService.updateCategory(
+      params.id,
+      categoryDto,
+      user,
+    );
+    return { message: 'done', category };
   }
 
   @Auth({ role: [UserRole.admin], typeToken: TokenType.access })
@@ -62,39 +75,46 @@ export class BrandController {
     ),
   )
   @Patch('updateImage/:id')
-  async updateBrandImage(
+  async updateCategoryImage(
     @Param() params: idDto,
     @User() user: HUserDocument,
     @UploadedFile(ParseFilePipe) file: Express.Multer.File,
   ) {
-    const brand = this.brandService.updateBrandImage(params.id, file, user);
-    return { message: 'done', brand };
+    const category = await this.categoryService.updateCategoryImage(
+      params.id,
+      file,
+      user,
+    );
+    return { message: 'done', category };
   }
 
   @Auth({ role: [UserRole.admin], typeToken: TokenType.access })
   @Patch('freeze/:id')
-  async freezeBrand(@Param() params: idDto, @User() user: HUserDocument) {
-    const brand = this.brandService.freezeBrand(params.id, user);
-    return { message: 'done', brand };
+  async freezeCategory(@Param() params: idDto, @User() user: HUserDocument) {
+    const category = await this.categoryService.freezeCategory(params.id, user);
+    return { message: 'done', category };
   }
 
   @Auth({ role: [UserRole.admin], typeToken: TokenType.access })
   @Patch('restore/:id')
-  async restoreBrand(@Param() params: idDto, @User() user: HUserDocument) {
-    const brand = this.brandService.restoreBrand(params.id, user);
-    return { message: 'done', brand };
+  async restoreCategory(@Param() params: idDto, @User() user: HUserDocument) {
+    const category = await this.categoryService.restoreCategory(
+      params.id,
+      user,
+    );
+    return { message: 'done', category };
   }
 
   @Auth({ role: [UserRole.admin], typeToken: TokenType.access })
   @Delete(':id')
-  async deleteBrand(@Param() params: idDto) {
-    const brand = this.brandService.deleteBrand(params.id);
-    return { message: 'done', brand };
+  async deleteCategory(@Param() params: idDto) {
+    const category = await this.categoryService.deleteCategory(params.id);
+    return { message: 'done', category };
   }
 
   @Get()
-  async getAllBrands(@Query() query: queryDto) {
-    const brands = this.brandService.getAllBrands(query);
-    return { message: 'done', brands };
+  async getAllCategories(@Query() query: queryDto) {
+    const categories = await this.categoryService.getAllCategories(query);
+    return { message: 'done', categories };
   }
 }

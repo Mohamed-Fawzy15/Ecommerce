@@ -4,7 +4,7 @@ import { MongooseModule, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types, UpdateQuery } from 'mongoose';
 import slugify from 'slugify';
 
-export class Brand {
+export class Category {
   @Prop({
     required: true,
     type: String,
@@ -35,6 +35,9 @@ export class Brand {
   @Prop({ required: true, type: String })
   image: string;
 
+  @Prop({ type: String })
+  assetFolderID: string;
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   createdBy: Types.ObjectId;
 
@@ -46,13 +49,16 @@ export class Brand {
 
   @Prop({ type: Date })
   restoredAt: Date;
+
+  @Prop([{ type: Types.ObjectId, ref: 'Brand' }])
+  brands: Types.ObjectId;
 }
 
-export const BrandSchema = SchemaFactory.createForClass(Brand);
+export const CategorySchema = SchemaFactory.createForClass(Category);
 
-export type HBrandDocument = HydratedDocument<Brand>;
-BrandSchema.pre(['updateOne', 'findOneAndUpdate'], async function (next) {
-  const update = this.getUpdate as UpdateQuery<Brand>;
+export type HCategoryDocument = HydratedDocument<Category>;
+CategorySchema.pre(['updateOne', 'findOneAndUpdate'], async function (next) {
+  const update = this.getUpdate as UpdateQuery<Category>;
   if (update.name) {
     update.slug = slugify(update.name, {
       replacement: '-',
@@ -62,17 +68,20 @@ BrandSchema.pre(['updateOne', 'findOneAndUpdate'], async function (next) {
   }
   next();
 });
-BrandSchema.pre(['findOne', 'find', 'findOneAndUpdate'], async function (next) {
-  const { paranoid, ...rest } = this.getQuery();
-  if (paranoid === false) {
-    this.setQuery({ ...rest, deletedAt: { $exists: true } });
-  } else {
-    this.setQuery({ ...rest, deletedAt: { $exists: false } });
-  }
+CategorySchema.pre(
+  ['findOne', 'find', 'findOneAndUpdate'],
+  async function (next) {
+    const { paranoid, ...rest } = this.getQuery();
+    if (paranoid === false) {
+      this.setQuery({ ...rest, deletedAt: { $exists: true } });
+    } else {
+      this.setQuery({ ...rest, deletedAt: { $exists: false } });
+    }
 
-  next();
-});
+    next();
+  },
+);
 
-export const BrandModel = MongooseModule.forFeature([
-  { name: Brand.name, schema: BrandSchema },
+export const CategoryModel = MongooseModule.forFeature([
+  { name: Category.name, schema: CategorySchema },
 ]);

@@ -50,4 +50,33 @@ export abstract class DbRepository<TDocument> {
   async deleteOne(filter: RootFilterQuery<TDocument>): Promise<DeleteResult> {
     return await this.model.deleteOne(filter);
   }
+
+  async paginate({
+    filter,
+    query,
+    projection,
+    options,
+  }: {
+    filter: RootFilterQuery<TDocument>;
+    query: { page: number; limit: number };
+    projection?: ProjectionType<TDocument>;
+    options?: QueryOptions<TDocument>;
+  }) {
+    let { page, limit = 2 } = query;
+    if (page < 0) page = 1;
+    page = page * 1 || 1;
+    const skip = (page - 1) * limit;
+    const finalOptions = {
+      ...(options || {}),
+      skip,
+      limit,
+    };
+
+    const countDoc = await this.model.countDocuments({
+      deletedAt: { $exists: false },
+    });
+    const totalPages = Math.ceil(countDoc / limit);
+    const result = await this.model.find(filter, projection, finalOptions);
+    return { result, currentPage: page, countDoc, totalPages };
+  }
 }
