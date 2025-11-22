@@ -9,6 +9,7 @@ import {
   CategoryModel,
   CategoryRepository,
   SubCategoryModel,
+  SubCategoryRepository,
   UserModel,
   UserRepository,
 } from 'DB';
@@ -20,12 +21,12 @@ import { CategoryService } from '../category/category.service';
   controllers: [SubCategoryController],
   providers: [
     SubCategoryService,
-    SubCategoryService,
     TokenService,
     JwtService,
     UserRepository,
     BrandRepository,
     CategoryRepository,
+    SubCategoryRepository,
     S3Service,
     CategoryService,
   ],

@@ -10,7 +10,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Types } from 'mongoose';
-import { PartialType } from 'nestjs-mapped-types';
+import { PartialType } from '@nestjs/mapped-types';
 import { AtLeastOne } from 'src/common/decorators';
 
 export class CreateBrandDto {

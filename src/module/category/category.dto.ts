@@ -11,7 +11,7 @@ import {
   Validate,
 } from 'class-validator';
 import { Types } from 'mongoose';
-import { PartialType } from 'nestjs-mapped-types';
+import { PartialType } from '@nestjs/mapped-types';
 import { AtLeastOne, IdsMongo } from 'src/common/decorators';
 
 export class CreateCategoryDto {

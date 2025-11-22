@@ -50,7 +50,10 @@ export class SubCategory {
   @Prop({ type: Date })
   restoredAt: Date;
 
-  @Prop([{ type: Types.ObjectId, ref: 'Category' }])
+  @Prop([{ type: Types.ObjectId, ref: 'Brand' }])
+  brands: Types.ObjectId[];
+
+  @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
   category: Types.ObjectId;
 }
 
