@@ -8,6 +8,7 @@ import { Connection } from 'mongoose';
 import { BrandModule } from './module/brand/brand.module';
 import { CategoryModule } from './module/category/category.module';
 import { SubCategoryModule } from './module/sub-category/subCategory.module';
+import { ProductModule } from './module/product/product.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SubCategoryModule } from './module/sub-category/subCategory.module';
         return connection;
       },
     }),
+    ProductModule,
     BrandModule,
     CategoryModule,
     SubCategoryModule,
