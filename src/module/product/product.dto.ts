@@ -31,15 +31,15 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @IsMongoId()
-  brand: string;
+  brand: Types.ObjectId;
 
   @IsMongoId()
   @IsNotEmpty()
-  category: string;
+  category: Types.ObjectId;
 
   @IsMongoId()
   @IsNotEmpty()
-  subCategory: string;
+  subCategory: Types.ObjectId;
 
   @IsNumber()
   @IsNotEmpty()

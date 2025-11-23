@@ -9,6 +9,7 @@ import { BrandModule } from './module/brand/brand.module';
 import { CategoryModule } from './module/category/category.module';
 import { SubCategoryModule } from './module/sub-category/subCategory.module';
 import { ProductModule } from './module/product/product.module';
+import { CartModule } from './module/cart/cart.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ProductModule } from './module/product/product.module';
     ProductModule,
     BrandModule,
     CategoryModule,
+    CartModule,
     SubCategoryModule,
   ],
   controllers: [AppController],
