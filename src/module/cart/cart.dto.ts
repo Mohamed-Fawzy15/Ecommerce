@@ -22,6 +22,14 @@ export class addToCartDto {
   quantity: number;
 }
 
+export class updateQuantityDto {
+  @IsNotEmpty()
+  @Min(1)
+  @Max(100)
+  @Type(() => Number)
+  quantity: number;
+}
+
 export class queryDto {
   @IsOptional()
   @IsNumber()

@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { addToCartDto } from './cart.dto';
+import { addToCartDto, updateQuantityDto } from './cart.dto';
 import { CartRepository, ProductRepository } from 'DB';
 import type { HUserDocument } from 'DB';
 import { Types } from 'mongoose';
@@ -80,6 +80,52 @@ export class CartService {
       (product) => product.product.toString() !== id.toString(),
     );
 
+    await cart.save();
+    return cart;
+  }
+
+  async updateQuantity(
+    body: updateQuantityDto,
+    id: Types.ObjectId,
+    user: HUserDocument,
+  ) {
+    const { quantity } = body;
+    const cart = await this.cartRepo.findOne({
+      filter: {
+        createdBy: user._id,
+        products: {
+          $elemMatch: {
+            product: id,
+          },
+        },
+      },
+    });
+
+    if (!cart) {
+      throw new BadRequestException('cart not found');
+    }
+
+    cart.products.find((product) => {
+      if (product.product.toString() === id.toString()) {
+        product.quantity = quantity;
+        return product;
+      }
+    });
+
+    await cart.save();
+    return cart;
+  }
+
+  async clearCart(user: HUserDocument) {
+    const cart = await this.cartRepo.findOne({
+      filter: { createdBy: user._id },
+    });
+
+    if (!cart) {
+      throw new BadRequestException('cart not found');
+    }
+
+    cart.products = [];
     await cart.save();
     return cart;
   }

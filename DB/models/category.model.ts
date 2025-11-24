@@ -50,8 +50,8 @@ export class Category {
   @Prop({ type: Date })
   restoredAt: Date;
 
-  @Prop([{ type: Types.ObjectId, ref: 'Brand' }])
-  brands: Types.ObjectId;
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Brand' }] })
+  brands: Types.ObjectId[];
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);

@@ -3,3 +3,4 @@ export * from './token.decorators';
 export * from './auth.decorators';
 export * from './brand.decorators';
 export * from './category.decorators';
+export * from './coupon.decorators';

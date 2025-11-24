@@ -10,6 +10,7 @@ import { CategoryModule } from './module/category/category.module';
 import { SubCategoryModule } from './module/sub-category/subCategory.module';
 import { ProductModule } from './module/product/product.module';
 import { CartModule } from './module/cart/cart.module';
+import { CouponModule } from './module/coupon/coupon.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CartModule } from './module/cart/cart.module';
     CategoryModule,
     CartModule,
     SubCategoryModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [AppService],

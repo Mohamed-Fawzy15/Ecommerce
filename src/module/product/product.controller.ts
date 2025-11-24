@@ -125,4 +125,14 @@ export class ProductController {
     const products = await this.productService.getAllProducts(query);
     return { message: 'done', products };
   }
+
+  @Post('addToWishlist/:id')
+  @Auth({
+    role: [UserRole.user, UserRole.admin],
+    typeToken: TokenType.access,
+  })
+  async addToWishlist(@Param() param: idDto, @User() user: HUserDocument) {
+    const userExist = await this.productService.addToWishlist(param.id, user);
+    return { message: 'done', userExist };
+  }
 }

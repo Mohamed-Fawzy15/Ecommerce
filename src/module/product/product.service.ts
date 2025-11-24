@@ -11,6 +11,7 @@ import {
   HUserDocument,
   ProductRepository,
   SubCategoryRepository,
+  UserRepository,
 } from 'DB';
 import { S3Service } from 'src/common/service';
 import { CreateProductDto, queryDto, updateProductDto } from './product.dto';
@@ -24,6 +25,7 @@ export class ProductService {
     private readonly s3Service: S3Service,
     private readonly subCategoryRepo: SubCategoryRepository,
     private readonly productRepo: ProductRepository,
+    private readonly userRepo: UserRepository,
   ) {}
 
   async createProduct(
@@ -312,5 +314,23 @@ export class ProductService {
         query: { page, limit },
       });
     return { currentPage, countDoc, totalPages, result };
+  }
+
+  async addToWishlist(id: Types.ObjectId, user: HUserDocument) {
+    const product = await this.productRepo.findOne({ _id: id });
+    if (!product) throw new NotFoundException('product not found');
+
+    let userExist = await this.userRepo.findOneAndUpdate(
+      { _id: user._id, wishlist: { $in: id } },
+      { $pull: { wishlist: id } },
+    );
+    if (!userExist) {
+      userExist = await this.userRepo.findOneAndUpdate(
+        { _id: user._id },
+        { $push: { wishlist: id } },
+      );
+    }
+
+    return { userExist };
   }
 }

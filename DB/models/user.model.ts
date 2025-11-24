@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Prop, Schema, SchemaFactory, Virtual } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { UserGender, UserProvider, UserRole } from 'src/common/enums';
 import type { HOtpDocument } from './otp.model';
 import { Hash } from 'src/common/hash';
@@ -76,6 +76,9 @@ export class User {
 
   @Virtual()
   otp: HOtpDocument;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Product' }] })
+  wishlist: Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
