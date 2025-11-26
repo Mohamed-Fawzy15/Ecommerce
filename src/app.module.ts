@@ -11,6 +11,7 @@ import { SubCategoryModule } from './module/sub-category/subCategory.module';
 import { ProductModule } from './module/product/product.module';
 import { CartModule } from './module/cart/cart.module';
 import { CouponModule } from './module/coupon/coupon.module';
+import { OrderModule } from './module/order/order.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CouponModule } from './module/coupon/coupon.module';
     CartModule,
     SubCategoryModule,
     CouponModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

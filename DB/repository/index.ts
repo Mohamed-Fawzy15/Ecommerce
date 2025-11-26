@@ -7,3 +7,4 @@ export * from './subCategory.repository';
 export * from './product.repository';
 export * from './cart.repository';
 export * from './coupon.repository';
+export * from './order.repository';
