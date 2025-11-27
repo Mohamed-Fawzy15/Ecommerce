@@ -26,11 +26,27 @@ export class AuthorizationGuard implements CanActivate {
         context.getHandler(),
       );
 
-      const req = context.switchToHttp().getRequest();
+      let req: any;
+      let user: any;
 
-      if (!access_roles.includes(req.user.role)) {
-        throw new BadRequestException();
+      if (context.getType() === 'http') {
+        req = context.switchToHttp().getRequest();
+        user = req.user;
+      } else if (context.getType() === 'ws') {
+        req = context.switchToWs().getClient();
+        user = req.data?.user;
+      } else if (context.getType() === 'rpc') {
+        // Handle RPC context
       }
+
+      if (!user) {
+        throw new BadRequestException('User not authenticated');
+      }
+
+      if (!access_roles.includes(user.role)) {
+        throw new BadRequestException('Insufficient permissions');
+      }
+
       return true;
     } catch (error) {
       throw new BadRequestException(error.message);

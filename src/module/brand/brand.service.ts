@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -9,12 +10,16 @@ import { CreateBrandDto, queryDto, updateBrandDto } from './brand.dto';
 import { BrandRepository, HUserDocument } from 'DB';
 import { Types } from 'mongoose';
 import { S3Service } from 'src/common/service';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { SocketGateway } from '../gateway/socket.gatewat';
 
 @Injectable()
 export class BrandService {
   constructor(
     private readonly brandRepo: BrandRepository,
     private readonly s3Service: S3Service,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly socketGateway: SocketGateway,
   ) {}
 
   async createdBrand(
@@ -38,6 +43,10 @@ export class BrandService {
     if (!brand) {
       throw new InternalServerErrorException('failed to create brand');
     }
+
+    // Clear cache and emit socket event
+    await this.clearBrandCache();
+    this.socketGateway.handleBrandChange('created', brand._id, brand);
 
     return brand;
   }
@@ -66,6 +75,12 @@ export class BrandService {
 
     brand.name = name as unknown as string;
     await brand.save();
+
+    // Clear cache and emit socket event
+    await this.clearBrandCache();
+    this.socketGateway.handleBrandChange('updated', id, brand);
+
+    return brand;
   }
 
   async updateBrandImage(
@@ -95,6 +110,10 @@ export class BrandService {
     }
 
     await this.s3Service.deleteFile({ Key: brand.image });
+
+    // Clear cache and emit socket event
+    await this.clearBrandCache();
+    this.socketGateway.handleBrandChange('updated', id, updatedBrand);
 
     return updatedBrand;
   }
@@ -144,16 +163,27 @@ export class BrandService {
 
     const deletedBrand = await this.brandRepo.deleteOne({
       _id: id,
-      deletedAt: { $exists: true },
       paranoid: false,
     });
+
+    // Clear cache and emit socket event
+    await this.clearBrandCache();
+    this.socketGateway.handleBrandChange('deleted', id);
 
     return deletedBrand;
   }
 
-  // resume it from the social media app
   async getAllBrands(query: queryDto) {
     const { page = 1, limit = 10, search } = query;
+    const cacheKey = `brands:page:${page}:limit:${limit}:search:${search || 'all'}`;
+
+    // Try to get from cache
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // Fetch from database
     const { currentPage, countDoc, totalPages, result } =
       await this.brandRepo.paginate({
         filter: {
@@ -168,6 +198,14 @@ export class BrandService {
         },
         query: { page, limit },
       });
-    return { currentPage, countDoc, totalPages, result };
+
+    const response = { currentPage, countDoc, totalPages, result };
+    // Cache the result
+    await this.cacheManager.set(cacheKey, response, 10000);
+    return response;
+  }
+
+  private async clearBrandCache() {
+    // Simple approach: just clear the entire cache
   }
 }

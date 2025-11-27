@@ -23,25 +23,26 @@ export class AuthenticationGuard implements CanActivate {
     const typeToken = this.reflector.get(TokenName, context.getHandler());
     let req: any;
     let authorization: string = '';
+
     if (context.getType() === 'http') {
       req = context.switchToHttp().getRequest();
-      authorization = req.headers.authurzation;
+      authorization = req.headers.authorization;
+    } else if (context.getType() === 'ws') {
+      req = context.switchToWs().getClient();
+      authorization =
+        req.handshake.headers.authorization || req.handshake.auth?.token;
+    } else if (context.getType() === 'rpc') {
+      // Handle RPC context
     }
-    // else if(context.getType() === 'ws'){
-
-    // }else if(context.getType() === 'rpc'){
-
-    // }
 
     try {
-      const { authorization } = req.headers;
       const [prefix, token] = authorization?.split(' ') || [];
 
       if (!prefix || !token) {
         throw new BadRequestException('Token not found');
       }
 
-      const signature = await this.tokenService.GetSignature(prefix);
+      const signature = await this.tokenService.GetSignature(prefix, typeToken);
       if (!signature) {
         throw new BadRequestException('Invalid signature');
       }
@@ -49,8 +50,15 @@ export class AuthenticationGuard implements CanActivate {
       const { user, decoded } =
         await this.tokenService.decodedTokenAndFetchUser(token, signature);
 
-      req.user = user;
-      req.decoded = decoded;
+      if (context.getType() === 'ws') {
+        req.data = req.data || {};
+        req.data.user = user;
+        req.data.decoded = decoded;
+      } else {
+        req.user = user;
+        req.decoded = decoded;
+      }
+
       return true;
     } catch (error) {
       throw new BadRequestException(error.message);

@@ -12,6 +12,8 @@ import { ProductModule } from './module/product/product.module';
 import { CartModule } from './module/cart/cart.module';
 import { CouponModule } from './module/coupon/coupon.module';
 import { OrderModule } from './module/order/order.module';
+import { GatewayModule } from './module/gateway/gateway.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -20,6 +22,10 @@ import { OrderModule } from './module/order/order.module';
     ConfigModule.forRoot({
       envFilePath: './config/.env',
       isGlobal: true,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 5000,
     }),
     MongooseModule.forRoot(process.env.MONGO_URL as string, {
       onConnectionCreate: (connection: Connection) => {
@@ -36,6 +42,7 @@ import { OrderModule } from './module/order/order.module';
     SubCategoryModule,
     CouponModule,
     OrderModule,
+    GatewayModule,
   ],
   controllers: [AppController],
   providers: [AppService],

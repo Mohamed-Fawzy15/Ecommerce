@@ -3,12 +3,14 @@ import { addToCartDto, updateQuantityDto } from './cart.dto';
 import { CartRepository, ProductRepository } from 'DB';
 import type { HUserDocument } from 'DB';
 import { Types } from 'mongoose';
+import { SocketGateway } from '../gateway/socket.gatewat';
 
 @Injectable()
 export class CartService {
   constructor(
     private readonly cartRepo: CartRepository,
     private readonly productRepo: ProductRepository,
+    private readonly socketGateway: SocketGateway,
   ) {}
 
   async addToCart(body: addToCartDto, user: HUserDocument) {
@@ -51,6 +53,8 @@ export class CartService {
       quantity,
       finalPrice: product.price,
     });
+
+    this.socketGateway.handleProductQunatityChange(productId, quantity);
     await cart.save();
     return cart;
   }
@@ -80,6 +84,7 @@ export class CartService {
       (product) => product.product.toString() !== id.toString(),
     );
 
+    this.socketGateway.handleProductQunatityChange(id, 0);
     await cart.save();
     return cart;
   }
@@ -112,6 +117,7 @@ export class CartService {
       }
     });
 
+    this.socketGateway.handleProductQunatityChange(id, quantity);
     await cart.save();
     return cart;
   }
@@ -126,6 +132,7 @@ export class CartService {
     }
 
     cart.products = [];
+    this.socketGateway.handleCartCleared(user._id);
     await cart.save();
     return cart;
   }
